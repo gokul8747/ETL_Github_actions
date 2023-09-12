@@ -1,0 +1,39 @@
+name: ETL
+'on':
+    schedule:
+      - cron: '0 0/6 * * *'
+jobs:
+  my-job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Acess repo
+        uses: actions/checkout@v3
+        
+      - name: configure python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9.7'
+
+      - name: Install necessary libraries
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Execute python script
+        run: python ETL_automation.py
+        
+      - name: commit files
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add -A
+          git diff-index --quiet HEAD || (git commit -a -m "updated logs" --allow-empty)
+          git config pull.rebase false
+          git pull
+          git push
+          
+      - name: push changes
+        uses: ad-m/github-push-action@v0.6.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: main 
